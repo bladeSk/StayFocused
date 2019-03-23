@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Core">
+      <UniqueIdentifier>{dedbfdfd-bcc5-43bf-a1f8-a2b867f2a63b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="mhook">
+      <UniqueIdentifier>{f81130e2-6cd2-4bed-a81a-39e39db7a433}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="mhook\disasm-lib">
+      <UniqueIdentifier>{e4dced36-86a7-4142-ad5b-b929f6f81801}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="mhook\mhook-lib">
+      <UniqueIdentifier>{e70aec58-c1a9-4680-a60a-0fb8a2b116bf}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="dllmain.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="mhook-2.2\disasm-lib\disasm_x86.c">
+      <Filter>mhook\disasm-lib</Filter>
+    </ClCompile>
+    <ClCompile Include="mhook-2.2\disasm-lib\misc.c">
+      <Filter>mhook\disasm-lib</Filter>
+    </ClCompile>
+    <ClCompile Include="mhook-2.2\disasm-lib\cpu.c">
+      <Filter>mhook\disasm-lib</Filter>
+    </ClCompile>
+    <ClCompile Include="mhook-2.2\disasm-lib\disasm.c">
+      <Filter>mhook\disasm-lib</Filter>
+    </ClCompile>
+    <ClCompile Include="mhook-2.2\mhook-lib\mhook.cpp">
+      <Filter>mhook\mhook-lib</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="mhook-2.2\disasm-lib\disasm_x86.h">
+      <Filter>mhook\disasm-lib</Filter>
+    </ClInclude>
+    <ClInclude Include="mhook-2.2\disasm-lib\disasm_x86_tables.h">
+      <Filter>mhook\disasm-lib</Filter>
+    </ClInclude>
+    <ClInclude Include="mhook-2.2\disasm-lib\misc.h">
+      <Filter>mhook\disasm-lib</Filter>
+    </ClInclude>
+    <ClInclude Include="mhook-2.2\disasm-lib\cpu.h">
+      <Filter>mhook\disasm-lib</Filter>
+    </ClInclude>
+    <ClInclude Include="mhook-2.2\disasm-lib\disasm.h">
+      <Filter>mhook\disasm-lib</Filter>
+    </ClInclude>
+    <ClInclude Include="mhook-2.2\mhook-lib\mhook.h">
+      <Filter>mhook\mhook-lib</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
