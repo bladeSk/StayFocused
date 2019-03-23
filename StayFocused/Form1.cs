@@ -18,7 +18,6 @@ namespace StayFocused
     {
         WindowWatcher winWatcher;
         uint ownPid;
-        HashSet<string> ignoredExes;
         static Form1 instance;
 
         delegate void LogCallback (params object[] entries);
@@ -34,14 +33,6 @@ namespace StayFocused
         }
 
         void OnInit (object sender, EventArgs e) {
-            ignoredExes = new HashSet<string> {
-                "explorer.exe",
-                "chrome.exe",
-                "foobar2000.exe",
-                "8's hotkeys2.1.exe",
-                "7+ taskbar tweaker.ex2",
-            };
-
             ownPid = (uint)Process.GetCurrentProcess().Id;
 
             winWatcher = new WindowWatcher(OnWindowCreated);
@@ -54,45 +45,39 @@ namespace StayFocused
             }
 
             if (entries.Length == 1) {
-                instance.textBoxLog.AppendText(entries[0].ToString() + "\n");
+                instance.textBoxLog.AppendText(entries[0].ToString() + Environment.NewLine);
             } else {
-                instance.textBoxLog.AppendText(String.Join(" ", entries) + "\n");
+                instance.textBoxLog.AppendText(string.Join(" ", entries) + Environment.NewLine);
             }
         }
 
         void OnWindowCreated (Process proc) {
-            if (proc.Id == ownPid) return;
-
-            try {
-                string exeName = proc.MainModule.ModuleName;
-
-                if (ignoredExes.Contains(exeName.ToLowerInvariant())) return;
-
-                Log("Hooking", exeName, "(" + proc.Id + ")");
-#if (!TESTMODE)
-                Injector.InjectDLL(proc);
-#endif
-            } catch (Win32Exception) {
-                //Console.WriteLine("can't access " + proc.Id);
-            }
+            if (IsOnBlacklist(proc))
+                AddHook(proc);
         }
 
         void UnloadHooks () {
             foreach (var proc in Process.GetProcesses()) {
                 if (proc.Id == ownPid) continue;
 
-                try {
-                    string exeName = proc.MainModule.ModuleName;
+                RemoveHook(proc);
+            }
+        }
 
-                    if (ignoredExes.Contains(exeName.ToLowerInvariant())) continue;
+        void RemoveHook(Process proc)
+        {
+            try
+            {
+                string exeName = proc.MainModule.ModuleName;
 
-                    Log("Unloading from", exeName, "(" + proc.Id + ")");
+                Log("Unloading from", exeName, "(" + proc.Id + ")");
 #if (!TESTMODE)
-                    Injector.UnloadDLL(proc);
+                Injector.UnloadDLL(proc);
 #endif
-                } catch (Win32Exception) {
-                    //Console.WriteLine("can't access " + proc.Id);
-                }
+            }
+            catch (Exception e)
+            {
+                //Log("Exception while unloading hook: " + e.Message);
             }
         }
 
@@ -102,6 +87,138 @@ namespace StayFocused
 
         private void buttonExit_Click (object sender, EventArgs e) {
             OnExitClicked(null, null);
+        }
+
+        private void addButton_Click(object sender, EventArgs e)
+        {
+            BlackList(newBlacklistedProgram.Text);
+
+            newBlacklistedProgram.Text = "";
+        }
+
+        private void blacklistedPrograms_MouseUp(object sender, MouseEventArgs e)
+        {
+            if(e.Button == MouseButtons.Right)
+            {
+                int location = blacklistedPrograms.IndexFromPoint(e.Location);
+
+                if (location >= 0)
+                {
+                    blacklistedPrograms.SelectedIndex = location;
+                    blacklistContextMenu.Show(PointToScreen(e.Location));
+                }
+            }
+        }
+
+        private void blacklistedPrograms_ItemCheck(object sender, ItemCheckEventArgs e)
+        {
+            string procName = blacklistedPrograms.Items[e.Index].ToString();
+
+            Process[] processes = Process.GetProcessesByName(procName);
+
+            if (e.NewValue == CheckState.Checked)
+            {
+                foreach (Process p in processes)
+                    AddHook(p);
+            }
+            else if(e.NewValue == CheckState.Unchecked)
+            {
+                foreach (Process p in processes)
+                    RemoveHook(p);
+            }
+        }
+
+        private void deleteToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            int index = blacklistedPrograms.SelectedIndex;
+
+            if (blacklistedPrograms.GetItemCheckState(index) == CheckState.Checked)
+            {
+                UnBlackList(index);
+            }
+
+            blacklistedPrograms.Items.RemoveAt(index);
+        }
+
+        private void UnBlackList(int index)
+        {
+            DisableUI();
+
+            string name = blacklistedPrograms.Items[index].ToString();
+
+            Process[] processes = Process.GetProcessesByName(name);
+
+            foreach (Process p in processes)
+                RemoveHook(p);
+
+            EnableUI();
+        }
+
+        private void BlackList(string name)
+        {
+            DisableUI();
+
+            // this triggers an ItemCheckEvent, so we can let that take care of everything
+            blacklistedPrograms.Items.Add(name, true);
+
+            EnableUI();
+        }
+
+        private void DisableUI()
+        {
+            newBlacklistedProgram.Enabled = false;
+            addButton.Enabled = false;
+            blacklistedPrograms.Enabled = false;
+        }
+
+        private void EnableUI()
+        {
+
+            newBlacklistedProgram.Enabled = true;
+            addButton.Enabled = true;
+            blacklistedPrograms.Enabled = true;
+        }
+
+        private bool AddHook(Process proc)
+        {
+            try
+            {
+                string exeName = proc.MainModule.ModuleName;
+
+                Log("Hooking", exeName, "(" + proc.Id + ")");
+
+#if (!TESTMODE)
+                Injector.InjectDLL(proc);
+#endif
+
+                return true;
+            }
+            catch (Exception e)
+            {
+                Log("Failed to hook " + proc.ProcessName + ": " + e.Message);
+                return false;
+            }
+
+        }
+
+        private bool IsOnBlacklist(Process proc)
+        {
+            // LINQ isn't readily-available on a CheckedItemCollection, so we do it the old-fashioned way:
+
+            foreach(var item in blacklistedPrograms.CheckedItems)
+            {
+                try
+                {
+                    if (item.ToString() == proc.MainModule.ModuleName)
+                        return true;
+                }
+                catch(Exception e)
+                {
+                    Log("Could not check an application: " + e.Message);
+                }
+            }
+
+            return false;
         }
 
         protected override void Dispose (bool isDisposing) {
@@ -180,6 +297,7 @@ namespace StayFocused
             Close();
             Dispose();
         }
-#endregion
+        #endregion
+
     }
 }
