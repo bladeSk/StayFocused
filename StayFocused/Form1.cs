@@ -36,10 +36,13 @@ namespace StayFocused
         void OnInit (object sender, EventArgs e) {
             ignoredExes = new HashSet<string> {
                 "explorer.exe",
+                "svchost.exe",
+                "SearchUI.exe",
                 "chrome.exe",
                 "foobar2000.exe",
                 "8's hotkeys2.1.exe",
                 "7+ taskbar tweaker.ex2",
+                "ShellExperienceHost.exe",
             };
 
             ownPid = (uint)Process.GetCurrentProcess().Id;
@@ -54,9 +57,9 @@ namespace StayFocused
             }
 
             if (entries.Length == 1) {
-                instance.textBoxLog.AppendText(entries[0].ToString() + "\n");
+                instance.textBoxLog.AppendText(entries[0].ToString() + Environment.NewLine);
             } else {
-                instance.textBoxLog.AppendText(String.Join(" ", entries) + "\n");
+                instance.textBoxLog.AppendText(String.Join(" ", entries) + Environment.NewLine);
             }
         }
 
