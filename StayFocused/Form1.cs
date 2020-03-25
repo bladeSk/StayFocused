@@ -74,6 +74,8 @@ namespace StayFocused
 #endif
             } catch (Win32Exception) {
                 //Console.WriteLine("can't access " + proc.Id);
+            } catch (InvalidOperationException) {
+                //Console.WriteLine("the process has exited " + proc.Id);
             }
         }
 
@@ -92,6 +94,8 @@ namespace StayFocused
 #endif
                 } catch (Win32Exception) {
                     //Console.WriteLine("can't access " + proc.Id);
+                } catch (InvalidOperationException) {
+                    //Console.WriteLine("the process has exited " + proc.Id);
                 }
             }
         }
