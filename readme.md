@@ -4,6 +4,8 @@ Stay Focused prevents the annoying "focus stealing" that's been plaguing Windows
 
 This utility prevents focus stealing by injecting a DLL into offending apps. The DLL "hooks" the process' system calls to SetForegroundWindow to an empty function.
 
+![Stay Focused Screenshot](https://blade.sk/stay-focused/screenshot1.png)
+
 ## Usage
 
 Extract the app somewhere and run it, it will automatically hook all the running apps (except Explorer and Chrome) and watch for newly created ones. Closing the window minimizes the app to tray. To exit and unload it, click the unload button.
