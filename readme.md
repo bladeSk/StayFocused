@@ -1,6 +1,16 @@
 # Stay Focused
 
-A small utility that prevents focus stealing by injecting a DLL into offending apps.
+Stay Focused prevents the annoying "focus stealing" that's been plaguing Windows since Windows 2000. Focus stealing occurs when an app pops up unexpectedly, like when you're in the middle of writing a sentence in another window.
+
+This utility prevents focus stealing by injecting a DLL into offending apps. The DLL "hooks" the process' system calls to SetForegroundWindow to an empty function.
+
+## Usage
+
+Extract the app somewhere and run it, it will automatically hook all the running apps (except Explorer and Chrome) and watch for newly created ones. Closing the window minimizes the app to tray. To exit and unload it, click the unload button.
+
+Don't run this with administrator privileges, system processes are not very safe to manipulate this way.
+
+Get the binary here https://blade.sk/stay-focused/
 
 ## Building
 
