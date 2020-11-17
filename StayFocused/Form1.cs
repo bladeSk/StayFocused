@@ -1,16 +1,9 @@
 ﻿//#define TESTMODE
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Diagnostics;
-using System.IO;
 
 namespace StayFocused
 {
@@ -18,7 +11,9 @@ namespace StayFocused
     {
         WindowWatcher winWatcher;
         uint ownPid;
-        HashSet<string> ignoredExes;
+
+        Config config;
+        
         static Form1 instance;
 
         delegate void LogCallback (params object[] entries);
@@ -34,19 +29,8 @@ namespace StayFocused
         }
 
         void OnInit (object sender, EventArgs e) {
-            ignoredExes = new HashSet<string> {
-                "explorer.exe",
-                "svchost.exe",
-                "SearchUI.exe",
-                "chrome.exe",
-                "foobar2000.exe",
-                "8's hotkeys2.1.exe",
-                "7+ taskbar tweaker.ex2",
-                "ShellExperienceHost.exe",
-            };
-
             ownPid = (uint)Process.GetCurrentProcess().Id;
-
+            config = new Config();
             winWatcher = new WindowWatcher(OnWindowCreated);
         }
 
@@ -68,8 +52,10 @@ namespace StayFocused
 
             try {
                 string exeName = proc.MainModule.ModuleName;
+                string exeNameLower = exeName.ToLowerInvariant();
 
-                if (ignoredExes.Contains(exeName.ToLowerInvariant())) return;
+                if (config.mode == Modes.Whitelist && !config.whitelist.Contains(exeNameLower)) return;
+                if (config.mode == Modes.Blacklist && config.blacklist.Contains(exeNameLower)) return;
 
                 Log("Hooking", exeName, "(" + proc.Id + ")");
 #if (!TESTMODE)
@@ -88,8 +74,10 @@ namespace StayFocused
 
                 try {
                     string exeName = proc.MainModule.ModuleName;
+                    string exeNameLower = exeName.ToLowerInvariant();
 
-                    if (ignoredExes.Contains(exeName.ToLowerInvariant())) continue;
+                    if (config.mode == Modes.Whitelist && !config.whitelist.Contains(exeNameLower)) return;
+                    if (config.mode == Modes.Blacklist && config.blacklist.Contains(exeNameLower)) return;
 
                     Log("Unloading from", exeName, "(" + proc.Id + ")");
 #if (!TESTMODE)
@@ -111,6 +99,16 @@ namespace StayFocused
             OnExitClicked(null, null);
         }
 
+        private void buttonGotoConfig_Click (object sender, EventArgs e) {
+            string args = "/select, \"" + config.GetConfigPath() + "\"";
+
+            Process.Start("explorer.exe", args);
+        }
+
+        private void linkHomepage_LinkClicked (object sender, LinkLabelLinkClickedEventArgs e) {
+            Process.Start("https://github.com/bladeSk/StayFocused");
+        }
+
         protected override void Dispose (bool isDisposing) {
             if (trayIcon != null) {
                 trayIcon.Dispose();
@@ -129,7 +127,7 @@ namespace StayFocused
         bool minimizeOnClose = true;
 
         void InitTrayIcon () {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(GetType());
+            ComponentResourceManager resources = new ComponentResourceManager(GetType());
 
             var trayMenu = new ContextMenu();
             var openItem = new MenuItem("Open", OnOpenClicked);
@@ -187,6 +185,6 @@ namespace StayFocused
             Close();
             Dispose();
         }
-#endregion
+        #endregion
     }
 }
